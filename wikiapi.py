@@ -6,6 +6,7 @@
 # И несколько функций вне кдасса:  page_get_html(title),  page_html_parsed(title) - получение html статей и парсинг для обработки
 #
 from sys import version_info
+
 PYTHON_VERSION = version_info.major
 if PYTHON_VERSION == 3:
 	from urllib.parse import urlencode, quote  # python 3
@@ -15,12 +16,11 @@ else:
 import requests
 from config import *
 
-
 URLapi = 'https://ru.wikipedia.org/w/api.php'
 URLindex = 'https://ru.wikipedia.org/w/index.php'
 URLhtml = 'https://ru.wikipedia.org/wiki/'
 headers = {'user-agent': 'user:textworkerBot'}
-file_password_to_api = 'password.txt'  # 2 string: 1 - user, 2 -
+from passwords import *  # contents parameters: api_user, api_pw, wdb_user, wdb_pw
 
 # ---
 ask_save_prompts = True  # работает с wikiAPI
@@ -44,10 +44,8 @@ class wikiconnect:
 		self.login()
 
 	def login(self):
-		global file_password_to_api
-		with open(file_password_to_api) as __f:  # , encoding='utf-8' 'ascii'
-			__username = __f.readline().strip()
-			__password = __f.readline().strip()
+		__username = api_user
+		__password = api_pw
 		# Login request
 		GETparameters = {'action': 'query', 'format': 'json', 'utf8': '', 'meta': 'tokens', 'type': 'login'}
 		r1 = requests.post(self.URLapi, data=GETparameters)
@@ -228,7 +226,7 @@ def get_list_transcludes_of_tpls(sfns_like_names):
 	list = set()
 	for tpl in sfns_like_names:
 		url = 'http://tools.wmflabs.org/ruwikisource/WDBquery_transcludes_template/?lang=ru&format=json&template=' + quote(
-			tpl)
+				tpl)
 		# GETparameters = {"action": "render"}  # html
 		GETparameters = {}
 		r = requests.get(url, data=GETparameters)
@@ -255,3 +253,23 @@ def renameCategory(from_, to_, summary_):
 	to_ = ' -to:"' + to_ + '"'
 	summary_ = ' -summary:"' + summary_ + '"'
 	run = command + from_ + to_ + summary_
+
+
+# ---------
+
+def wdb_query(sql):
+	import pymysql.cursors
+	connection = pymysql.connect(
+			host='127.0.0.1', port=4711,
+			# host='ruwiki.labsdb', port=3306,
+			db='ruwiki_p',
+			user=wdb_user,
+			password=wdb_pw,
+			use_unicode=True, charset="utf8")
+	try:
+		with connection.cursor() as cursor:
+			cursor.execute(sql)
+		result = cursor.fetchall()
+	finally:
+		connection.close()
+	return result

@@ -54,6 +54,19 @@ def file_readlines_in_set(filename):
 	return arr_strings
 
 
+def file_readlines_in_list_interlines(filename):
+	r = [
+		# ["line1", "line2"],
+		# ["line3", "line4"],
+	]
+	listlines = file_readlines_in_list(filename)
+	i = 0
+	while i <= len(listlines) - 1:
+		r.append([listlines[i], listlines[i + 1]])
+		i += 2
+	return r
+
+
 def json_store_to_file(filename, data):
 	import json
 	with open(filename, 'w', encoding='utf-8') as f:
@@ -99,7 +112,7 @@ def split_list_per_line_count(lst, chunk_size):
 
 
 def re_compile_list(re_groups):
-	"""Регулярных выражений по списку компиляция.
+	"""Регулярные выражения: компиляция по списку.
 
 	Список типа: letter_groups = ['[АБВГДЕЁЖЗ]', '[ИКЛМНО]', '[ПH]', '[СТУФХЦЧШЩЪЫЬЭЮЯ]', r'[.]']
 	"""
@@ -112,7 +125,7 @@ def re_compile_list(re_groups):
 
 
 def re_compile_dict(re_groups, flags=False):
-	"""Регулярных выражений по словарю компиляция.
+	"""Регулярные выражения: компиляция по словарю.
 
 	Принимает словарь типа:
 	{'АБВГДЕЁЖЗ': '[АБВГДЕЁЖЗ]', 'other': r'.'}
@@ -135,6 +148,13 @@ def re_compile_dict(re_groups, flags=False):
 	return groups
 
 
+def byte2utf(str):
+	import urllib.parse
+	str = urllib.parse.quote_from_bytes(str)
+	str = urllib.parse.unquote(str, encoding='utf8')
+	return str
+
+
 # ---
 def send_email_toollabs(subject, text, email='tools.vltools@tools.wmflabs.org'):
 	# Не работает из скрипа, из консоли - да
@@ -143,3 +163,17 @@ def send_email_toollabs(subject, text, email='tools.vltools@tools.wmflabs.org'):
 	import subprocess
 	cmd = 'echo -e "Subject: ' + subject + r'\n\n' + text + '" | /usr/sbin/exim -odf -i ' + email
 	subprocess.call(cmd, shell=True)
+
+
+# alpha version ---
+def ssh_connect(host, user, passw, port=22):
+	import paramiko
+	# host = 'tools-login.wmflabs.org'
+	ssh = paramiko.SSHClient()
+	ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+	ssh.connect(hostname=host, username=user, password=passw, port=port)
+	stdin, stdout, stderr = ssh.exec_command('ls -l')
+	data = stdout.read() + stderr.read()
+	ssh.close()
+	#
+	print(str(data))
