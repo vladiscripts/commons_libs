@@ -214,6 +214,7 @@ def page_get_html(title):
 def page_html_parse(title):
 	# from lxml import html
 	from lxml import etree
+	# import lxml
 	p_html = page_get_html(title)
 	p_html_parsed = etree.HTML(p_html)
 	# p_html_parsed = html.fromstring(p_html)
@@ -273,3 +274,8 @@ def wdb_query(sql):
 	finally:
 		connection.close()
 	return result
+
+
+def normalization_pagename(t):
+	""" Первая буква в верхний регистр, ' ' → '_' """
+	return t[0:1].upper() + t[1:].replace(' ', '_')

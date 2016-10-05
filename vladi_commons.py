@@ -17,9 +17,9 @@ else:
 # ----------
 
 
-def file_savelines(filename, text, append=False):
+def file_savelines(filename, strlist, append=False):
 	mode = 'a' if append else 'w'
-	text = '\n'.join(text)
+	text = '\n'.join(strlist)
 	with open(filename, mode, encoding='utf-8') as f:
 		f.write(text)
 
