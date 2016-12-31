@@ -1,10 +1,11 @@
-# -*- coding: utf-8 -*-
+# coding: utf-8
 #
 # author: https://github.com/vladiscripts
 #
 # Содержит класс с логином к WikiAPI, методом записи текста на страницы, получения викикода страниц.
 # И несколько функций вне кдасса:  page_get_html(title),  page_html_parsed(title) - получение html статей и парсинг для обработки
 #
+import requests
 from sys import version_info
 
 PYTHON_VERSION = version_info.major
@@ -13,8 +14,7 @@ if PYTHON_VERSION == 3:
 else:
 	from urllib import urlencode, quote  # python 2.7
 	import codecs
-import requests
-from config import *
+# from config import *
 
 URLapi = 'https://ru.wikipedia.org/w/api.php'
 URLindex = 'https://ru.wikipedia.org/w/index.php'
@@ -278,4 +278,5 @@ def wdb_query(sql):
 
 def normalization_pagename(t):
 	""" Первая буква в верхний регистр, ' ' → '_' """
+	t = t.strip()
 	return t[0:1].upper() + t[1:].replace(' ', '_')

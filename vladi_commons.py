@@ -46,6 +46,10 @@ def file_readlines_in_list(filename):
 	arr_strings = f.read().splitlines()
 	# arr_strings = [line.rstrip() for line in f]
 	f.close()
+	# чистка пустых строк
+	for v in arr_strings:
+		if v.isspace() or v == '':
+			arr_strings.remove(v)
 	return arr_strings
 
 
@@ -106,6 +110,13 @@ def str2list(string):
 	return [string] if isinstance(string, str) else string
 
 
+def list2str_qouted(delimiter, list_str, normalizations=False):
+	from wikiapi import normalization_pagename
+	if normalizations:
+		return delimiter.join(['"' + normalization_pagename(s) + '"' for s in list_str])
+	else:
+		return delimiter.join(['"' + s + '"' for s in list_str])
+
 def split_list_per_line_count(lst, chunk_size):
 	"""Разделение списка на части по числу строк."""
 	return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
@@ -153,6 +164,15 @@ def byte2utf(str):
 	str = urllib.parse.quote_from_bytes(str)
 	str = urllib.parse.unquote(str, encoding='utf8')
 	return str
+
+
+def label_interpages(number, string_chet, str_nechet):
+	# возвращает строку в зависимости чётная ли страница
+	return string_chet if not number % 2 else str_nechet
+
+
+def wiki_colontitul(c1='', c2='', c3=''):
+	return '{{колонтитул|%s|%s|%s}}' % (c1, c2, c3)
 
 
 # ---
