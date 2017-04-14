@@ -12,6 +12,14 @@ def removeTplParameters(tpl, keys):
 		if tpl.has(k): tpl.remove(k)
 
 
+def remove_parameters(wikicode, tpl_name, keys_list):
+	for tpl in wikicode.filter_templates():
+		if tpl.name.matches(tpl_name):
+			for k in keys_list:
+				if tpl.has(k): tpl.remove(k)
+	return wikicode
+
+
 def parametersNamesList(tpl):
 	pnamelist = []
 	for p in tpl.params:

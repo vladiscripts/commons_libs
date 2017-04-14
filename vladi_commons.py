@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8  -*-#
 # author: https://github.com/vladiscripts
 #
@@ -11,7 +12,7 @@ if PYTHON_VERSION == 3:
 	from urllib.parse import urlencode, quote  # python 3
 else:
 	from urllib import urlencode, quote  # python 2.7
-	import codecs
+# import codecs
 
 
 # ----------
@@ -26,7 +27,7 @@ def file_savelines(filename, strlist, append=False):
 
 def file_savetext(filename, text):
 	with open(filename, 'w', encoding='utf-8') as f:
-		text = f.write(text)
+		f.write(text)
 
 
 def file_readtext(filename):
@@ -35,26 +36,19 @@ def file_readtext(filename):
 	return text
 
 
-def file_readlines_in_list(filename):
+def file_readlines(filename):
 	if PYTHON_VERSION == 3:
-		f = open(filename, encoding='utf-8')
-	# arr_strings = set([line.rstrip() for line in f])  # python 3
+		with open(filename, 'r', encoding='utf-8') as f:
+			arr_strings = f.read().splitlines()
 	else:
-		f = codecs.open(filename, 'r', encoding='utf-8')
-	# with codecs.open(filename, 'r', encoding='utf-8') as f:  # python 2.7
-	# 	arr_strings = [line.rstrip() for line in f]  # python 2.7
-	arr_strings = f.read().splitlines()
-	# arr_strings = [line.rstrip() for line in f]
-	f.close()
+		import codecs
+		with codecs.open(filename, 'r', encoding='utf-8') as f:
+			arr_strings = f.read().splitlines()
+
 	# чистка пустых строк
 	for v in arr_strings:
 		if v.isspace() or v == '':
 			arr_strings.remove(v)
-	return arr_strings
-
-
-def file_readlines_in_set(filename):
-	arr_strings = set(file_readlines_in_list(filename))
 	return arr_strings
 
 
@@ -63,7 +57,7 @@ def file_readlines_in_list_interlines(filename):
 		# ["line1", "line2"],
 		# ["line3", "line4"],
 	]
-	listlines = file_readlines_in_list(filename)
+	listlines = file_readlines(filename)
 	i = 0
 	while i <= len(listlines) - 1:
 		r.append([listlines[i], listlines[i + 1]])
@@ -105,6 +99,14 @@ def pickle_data_from_file(filename):
 	return data
 
 
+def read_csv(csv_filename_wordlists, csv_colnum, csv_skip_firstline):
+	import csv
+	with open(csv_filename_wordlists) as csvfile:
+		reader = csv.reader(csvfile)  # reader = csv.DictReader(csvfile)
+		if csv_skip_firstline: next(reader)
+		return [row[csv_colnum] for row in reader]
+
+
 def str2list(string):
 	"""Строку в список"""
 	return [string] if isinstance(string, str) else string
@@ -116,6 +118,7 @@ def list2str_qouted(delimiter, list_str, normalizations=False):
 		return delimiter.join(['"' + normalization_pagename(s) + '"' for s in list_str])
 	else:
 		return delimiter.join(['"' + s + '"' for s in list_str])
+
 
 def split_list_per_line_count(lst, chunk_size):
 	"""Разделение списка на части по числу строк."""
@@ -159,16 +162,16 @@ def re_compile_dict(re_groups, flags=False):
 	return groups
 
 
-def byte2utf(str):
+def byte2utf(string):
 	import urllib.parse
-	str = urllib.parse.quote_from_bytes(str)
-	str = urllib.parse.unquote(str, encoding='utf8')
-	return str
+	string = urllib.parse.quote_from_bytes(string)
+	string = urllib.parse.unquote(string, encoding='utf8')
+	return string
 
 
 def label_interpages(number, string_chet, str_nechet):
 	# возвращает строку в зависимости чётная ли страница
-	return string_chet if not number % 2 else str_nechet
+	return str(string_chet) if not int(number) % 2 else str(str_nechet)
 
 
 def wiki_colontitul(c1='', c2='', c3=''):

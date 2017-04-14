@@ -7,6 +7,7 @@
 #
 import requests
 from sys import version_info
+import passwords as pw  # contents parameters: api_user, api_pw, wdb_user, wdb_pw
 
 PYTHON_VERSION = version_info.major
 if PYTHON_VERSION == 3:
@@ -20,7 +21,6 @@ URLapi = 'https://ru.wikipedia.org/w/api.php'
 URLindex = 'https://ru.wikipedia.org/w/index.php'
 URLhtml = 'https://ru.wikipedia.org/wiki/'
 headers = {'user-agent': 'user:textworkerBot'}
-from passwords import *  # contents parameters: api_user, api_pw, wdb_user, wdb_pw
 
 # ---
 ask_save_prompts = True  # работает с wikiAPI
@@ -28,7 +28,6 @@ ask_save_prompts = True  # работает с wikiAPI
 
 class wikiconnect:
 	def __init__(self):
-		from config import ask_save_prompts
 		global URLapi, URLindex, URLhtml
 		self.URLapi = URLapi
 		self.URLindex = URLindex
@@ -44,15 +43,15 @@ class wikiconnect:
 		self.login()
 
 	def login(self):
-		__username = api_user
-		__password = api_pw
+		__username = pw.__api_user
+		__password = pw.__api_pw
 		# Login request
 		GETparameters = {'action': 'query', 'format': 'json', 'utf8': '', 'meta': 'tokens', 'type': 'login'}
 		r1 = requests.post(self.URLapi, data=GETparameters)
 
 		# login confirm
 		login_token = r1.json()['query']['tokens']['logintoken']
-		GETparameters = {'action':     'login', 'format': 'json', 'utf8': '', 'lgname': __username,
+		GETparameters = {'action': 'login', 'format': 'json', 'utf8': '', 'lgname': __username,
 						 'lgpassword': __password, 'lgtoken': login_token}
 		r2 = requests.post(self.URLapi, data=GETparameters, cookies=r1.cookies)
 
@@ -89,9 +88,9 @@ class wikiapi_works(wikiconnect):
 	def save(self, text, mode='', summary=''):
 		# save action
 		while True:
-			parameters = {'action':       'edit', 'title': self.title, 'summary': summary,
+			parameters = {'action': 'edit', 'title': self.title, 'summary': summary,
 						  'contentmodel': 'wikitext', 'format': 'json', 'utf8': '', 'bot': True,
-						  'assert':       'user', 'token': self.edit_token}
+						  'assert': 'user', 'token': self.edit_token}
 
 			# Селектор: заменять текст, добавлять в начало, в конец
 			if mode == 'appendtext':
@@ -212,12 +211,11 @@ def page_get_html(title):
 
 
 def page_html_parse(title):
-	# from lxml import html
-	from lxml import etree
-	# import lxml
 	p_html = page_get_html(title)
-	p_html_parsed = etree.HTML(p_html)
-	# p_html_parsed = html.fromstring(p_html)
+	# from lxml.etree import HTML
+	# p_html_parsed = HTML(p_html)
+	from lxml.html import fromstring
+	p_html_parsed = fromstring(p_html)
 	return p_html_parsed
 
 
@@ -227,7 +225,7 @@ def get_list_transcludes_of_tpls(sfns_like_names):
 	list = set()
 	for tpl in sfns_like_names:
 		url = 'http://tools.wmflabs.org/ruwikisource/WDBquery_transcludes_template/?lang=ru&format=json&template=' + quote(
-				tpl)
+			tpl)
 		# GETparameters = {"action": "render"}  # html
 		GETparameters = {}
 		r = requests.get(url, data=GETparameters)
@@ -238,6 +236,7 @@ def get_list_transcludes_of_tpls(sfns_like_names):
 # ---------
 
 def movePagesToNewCategory(from_, to_, summary_):
+	import os
 	# command = "python movepages.my -noredirect"
 	command = 'python c:\pwb\pwb.py movepages.my -pt:0 -noredirect -simulate'
 	from_ = ' -from:"' + from_ + '"'
@@ -261,12 +260,16 @@ def renameCategory(from_, to_, summary_):
 def wdb_query(sql):
 	import pymysql.cursors
 	connection = pymysql.connect(
-			host='127.0.0.1', port=4711,
-			# host='ruwiki.labsdb', port=3306,
-			db='ruwiki_p',
-			user=wdb_user,
-			password=wdb_pw,
-			use_unicode=True, charset="utf8")
+		# Для доступа к wiki-БД с ПК необходим ssh-тунель с перебросом порта с localhost
+		# ssh -L 4711:ruwiki.labsdb:3306 <username>@login.tools.wmflabs.org -i "<path/to/key>"
+		# см. https://wikitech.wikimedia.org/wiki/Help:Tool_Labs/Database#Connecting_to_the_database_replicas_from_your_own_computer
+		host='127.0.0.1', port=4711,
+		# или для доступа из скриптов на tools.wmflabs.org напрямую:
+		# host='ruwiki.labsdb', port=3306,
+		db='ruwiki_p',
+		user=pw.__wdb_user,
+		password=pw.__wdb_pw,
+		use_unicode=True, charset="utf8")
 	try:
 		with connection.cursor() as cursor:
 			cursor.execute(sql)
@@ -280,3 +283,9 @@ def normalization_pagename(t):
 	""" Первая буква в верхний регистр, ' ' → '_' """
 	t = t.strip()
 	return t[0:1].upper() + t[1:].replace(' ', '_')
+
+
+def strip_outer_tag(html_fragment):
+	import re
+	outer_tag = re.compile(r'^<[^>]+>(.*?)</[^>]+>$', re.DOTALL)
+	return outer_tag.search(html_fragment).group(1)
