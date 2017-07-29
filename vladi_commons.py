@@ -12,6 +12,8 @@ if PYTHON_VERSION == 3:
 	from urllib.parse import urlencode, quote  # python 3
 else:
 	from urllib import urlencode, quote  # python 2.7
+
+
 # import codecs
 
 
@@ -99,13 +101,26 @@ def pickle_data_from_file(filename):
 	return data
 
 
-def read_csv(csv_filename_wordlists, csv_colnum, csv_skip_firstline):
+def read_csv(filename, csv_skip_firstline=None):
 	import csv
-	with open(csv_filename_wordlists) as csvfile:
-		reader = csv.reader(csvfile)  # reader = csv.DictReader(csvfile)
-		if csv_skip_firstline: next(reader)
-		return [row[csv_colnum] for row in reader]
+	with open(filename) as f_obj:
+		reader = csv.reader(f_obj)  # reader = csv.DictReader(f_obj)
+		if csv_skip_firstline:
+			next(reader)
+		return tuple(row for row in reader)
 
+
+def read_csv_dict(filename, delimiter=','):
+	import csv
+	with open(filename) as f_obj:
+		reader = csv.DictReader(f_obj, delimiter=delimiter)
+		return tuple(row for row in reader)
+
+
+def remove_empty_lines(lst):
+	"""чистка от пустых строк"""
+	return [x for x in lst if x]
+	
 
 def str2list(string):
 	"""Строку в список"""
