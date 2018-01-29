@@ -46,12 +46,7 @@ def file_readlines(filename):
 		import codecs
 		with codecs.open(filename, 'r', encoding='utf-8') as f:
 			arr_strings = f.read().splitlines()
-
-	# чистка пустых строк
-	for v in arr_strings:
-		if v.isspace() or v == '':
-			arr_strings.remove(v)
-	return arr_strings
+	return list_clean_empty_strs(arr_strings)
 
 
 def file_readlines_in_list_interlines(filename):
@@ -68,15 +63,15 @@ def file_readlines_in_list_interlines(filename):
 
 
 def json_store_to_file(filename, data):
-	import json
-	with open(filename, 'w', encoding='utf-8') as f:
+	import json, io
+	with io.open(filename, 'w', encoding='utf-8') as f:
 		f.write(json.dumps(data, ensure_ascii=False, sort_keys=True, indent=4))
 	pass
 
 
 def json_data_from_file(filename):
-	import json
-	with open(filename, 'r', encoding='utf-8') as f:
+	import json, io
+	with io.open(filename, 'r', encoding='utf-8') as f:
 		data = json.load(f)
 	return data
 
@@ -101,7 +96,7 @@ def pickle_data_from_file(filename):
 	return data
 
 
-def read_csv(filename, csv_skip_firstline=None):
+def csv_read(filename, csv_skip_firstline=None):
 	import csv
 	with open(filename) as f_obj:
 		reader = csv.reader(f_obj)  # reader = csv.DictReader(f_obj)
@@ -110,21 +105,66 @@ def read_csv(filename, csv_skip_firstline=None):
 		return tuple(row for row in reader)
 
 
-def read_csv_dict(filename, delimiter=','):
+def csv_read_dict(filename, delimiter=','):
 	import csv
 	with open(filename) as f_obj:
 		reader = csv.DictReader(f_obj, delimiter=delimiter)
 		return tuple(row for row in reader)
 
 
+def csv_save(path, list_str, delimiter=','):
+	import csv
+	with open(path, "w", newline="") as file:
+		writer = csv.writer(file, delimiter)
+		for row in list_str:
+			writer.writerow(row)
+
+
+def csv_save_dict(path, dic, fieldnames=None, delimiter=',', headers=True):
+	"""Writes a CSV file using DictWriter"""
+	import csv
+	if not fieldnames:
+		fieldnames = dic[0].keys()
+	with open(path, "w", newline='') as out_file:
+		writer = csv.DictWriter(out_file, delimiter=delimiter, fieldnames=fieldnames)
+		if headers:
+			writer.writeheader()
+		for row in dic:
+			writer.writerow(row)
+
+
+def csv_save_dict_fromListWithHeaders(path, data):
+	""" ключи в первой строке списка"""
+	# my_list = []
+	fieldnames = data[0]
+	# for values in data[1:]:
+	# 	inner_dict = dict(zip(fieldnames, values))
+	# 	my_list.append(inner_dict)
+	inner_dic = (dict(zip(fieldnames, values)) for values in data[1:])
+	csv_save_dict(path, inner_dic, fieldnames=data[0], headers=True)
+
+
 def remove_empty_lines(lst):
 	"""чистка от пустых строк"""
 	return [x for x in lst if x]
-	
 
-def str2list(string):
+
+def type_str2list(string):
 	"""Строку в список"""
 	return [string] if isinstance(string, str) else string
+
+
+def str2list(string):
+	return list_clean_empty_strs(string.splitlines())
+
+
+def list_clean_empty_strs(lst):
+	"""Чистка пустых строк в списке"""
+	# Тестировано: import timeit; timeit.timeit(test_func, number=10000)
+	# return [p.strip() for p in lst.splitlines() if p.strip() != '']
+	# return [lst.remove(v) for v in lst if v == '' and v.isspace()]  # Чистка пустых строк в списке
+	# return [v.strip() for v in lst if not v.isspace() and v != '']
+	return [p.strip() for p in lst if p.strip() != '']
 
 
 def list2str_qouted(delimiter, list_str, normalizations=False):
@@ -135,9 +175,26 @@ def list2str_qouted(delimiter, list_str, normalizations=False):
 		return delimiter.join(['"' + s + '"' for s in list_str])
 
 
+def lines2list(text):
+	return list_clean_empty_strs(text.splitlines())
+
+
+def lines_two_elements2list(text):
+	"""like:
+	email@gmail.com ; password
+	6666;3dg """
+	text = [p.partition(';')[0::2] for p in text.splitlines()]
+	return [[s[0].strip(), s[1].strip()] for s in text if s[0].strip() != '']
+
+
 def split_list_per_line_count(lst, chunk_size):
 	"""Разделение списка на части по числу строк."""
 	return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
+
+
+def find_str_in_el_of_list_and_select(lst, search_str):
+	"""Ищет подстроку в строковых элементах списка, и возвращает найденный элемент."""
+	return [s for s in lst if type(s) == str and s.find(search_str) >= 0][0]
 
 
 def re_compile_list(re_groups):
@@ -184,6 +241,8 @@ def byte2utf(string):
 	return string
 
 
+# Wiki ---
+
 def label_interpages(number, string_chet, str_nechet):
 	# возвращает строку в зависимости чётная ли страница
 	return str(string_chet) if not int(number) % 2 else str(str_nechet)
@@ -193,7 +252,7 @@ def wiki_colontitul(c1='', c2='', c3=''):
 	return '{{колонтитул|%s|%s|%s}}' % (c1, c2, c3)
 
 
-# ---
+# Internet ---
 def send_email_toollabs(subject, text, email='tools.vltools@tools.wmflabs.org'):
 	# Не работает из скрипа, из консоли - да
 	# https://wikitech.wikimedia.org/wiki/Help:Tool_Labs#Mail_from_tools
@@ -201,6 +260,27 @@ def send_email_toollabs(subject, text, email='tools.vltools@tools.wmflabs.org'):
 	import subprocess
 	cmd = 'echo -e "Subject: ' + subject + r'\n\n' + text + '" | /usr/sbin/exim -odf -i ' + email
 	subprocess.call(cmd, shell=True)
+
+
+def url_params_str_to_dict(url, unquote=True):
+	"""Парсинг параметров url: str > dict.
+	! Одинакоые ключи затираются. Использовать url_params_str_to_list() на основе urllib.parse.parse_qsl() !
+	unquote: декодировать percent-encoded символы строки"""
+	import urllib.parse
+	if unquote:
+		url = urllib.parse.unquote(url)
+	d = urllib.parse.parse_qs(url, keep_blank_values=True)
+	return {k: v[0] for k, v in d.items()}
+
+
+def url_params_str_to_list(url, unquote=True):
+	"""Парсинг параметров url: str > dict.
+	unquote: декодировать percent-encoded символы строки"""
+	import urllib.parse
+	if unquote:
+		url = urllib.parse.unquote(url)
+	d = urllib.parse.parse_qsl(url, keep_blank_values=True)
+	return {k: v[0] for k, v in d.items()}
 
 
 # alpha version ---

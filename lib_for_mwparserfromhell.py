@@ -6,32 +6,32 @@ import re
 import mwparserfromhell
 
 
+def listtpls(wikicode, tplname):
+	return [tpl for tpl in wikicode.filter_templates() if tpl.name.matches(tplname)]
+
+def tpl_add_param(tpl, param, value):
+	if not param in tpl:
+		tpl.add(param, value)
+
 def removeTplParameters(tpl, keys):
 	# if type(keys) == str: keys = (keys,)
 	for k in keys:
 		if tpl.has(k): tpl.remove(k)
 
 
-def remove_parameters(wikicode, tpl_name, keys_list):
-	for tpl in wikicode.filter_templates():
-		if tpl.name.matches(tpl_name):
-			for k in keys_list:
-				if tpl.has(k): tpl.remove(k)
+def remove_parameters(wikicode, tplname, keys):
+	for tpl in listtpls(wikicode, tplname):
+		for k in keys:
+			if tpl.has(k): tpl.remove(k)
 	return wikicode
 
 
 def parametersNamesList(tpl):
-	pnamelist = []
-	for p in tpl.params:
-		pnamelist.append(p.name.strip())
-	return pnamelist
+	return [p.name.strip() for p in tpl.params]
 
 
 def parametersValuesList(tpl):
-	pvalueslist = []
-	for p in tpl.params:
-		pvalueslist.append(p.value.strip())
-	return pvalueslist
+	return [p.value.strip() for p in tpl.params]
 
 
 def removeTplParametersExceptThis(tpl, keys):
@@ -71,7 +71,7 @@ def findLink(tpl, link2remove, linkparameters=('',)):
 			return True
 
 
-def findAndDeleteLink(tpl: object, link2remove: object, linkparameters: object = ('',)) -> object:
+def findAndDeleteLink(tpl, link2remove, linkparameters = ('',)):
 	linkparameters = ('ссылка', 'url', 'ссылка часть', 'часть ссылка') + linkparameters
 	# print (linkparameters)
 	for p in linkparameters:
@@ -157,9 +157,9 @@ def removeSpacesBreaks(tpl):
 
 
 def replaceParamValue(tpl, parameter, rePattern, repl):
-	if not tpl.has(parameter): return
-	s = str(tpl.get(parameter).value)
-	tpl.get(parameter).value = re.sub(rePattern, repl, s)
+	if tpl.has(parameter):
+		s = str(tpl.get(parameter).value)
+		tpl.get(parameter).value = re.sub(rePattern, repl, s)
 
 
 def paramIsEmpty(tpl, parameter):
@@ -172,6 +172,20 @@ def pagenameFromUrl(regexp, url):
 	if title:
 		title = title[0]
 		if not re.match('^[\d\s]+$', title): return title
+
+
+def parse_tagpages(tag):
+	# section
+	from collections import namedtuple
+	tagPages = {
+		'index': tag.get('index').value,
+		'from': tag.get('from').value,
+		'to': tag.get('to').value,
+		'onlysection': tag.get('onlysection').value,
+		'fromsection': tag.get('fromsection').value,
+		'tosection': tag.get('tosection').value
+	}
+	return namedtuple('Parts', tagPages.keys())(**tagPages)
 
 
 # если в "часть=" ссылка, то разделить на заглавие в "часть=" и ссылку в "ссылка часть="
