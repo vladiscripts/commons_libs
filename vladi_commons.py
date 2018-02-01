@@ -76,6 +76,20 @@ def json_data_from_file(filename):
 	return data
 
 
+def jsonlines_from_file(filename):
+	"""Чтение JSONlines (.jl) в список словарей"""
+	import json
+	lst = file_readlines(filename)
+	d = [json.loads(i) for i in lst]
+	return d
+
+
+def json_element_of_listdicts_to_file(filename, dic, elem):
+	"""Запись элемента из списка словарей в json-файл"""
+	list_elements = [i[elem] for i in dic]
+	json_store_to_file(filename, list_elements)
+
+
 def save_error_log(filename, text):
 	import datetime
 	now = datetime.datetime.now()
@@ -147,6 +161,24 @@ def csv_save_dict_fromListWithHeaders(path, data):
 def remove_empty_lines(lst):
 	"""чистка от пустых строк"""
 	return [x for x in lst if x]
+
+
+def delete_element_in_dictlist(dic, elem):
+	"""Удалить ключ из списка словарей"""
+	for i in dic:
+		del i[elem]
+
+
+# return dic
+
+
+def list_of_uniques(lst):
+	"""чистка списка от дубликатов"""
+	o = []
+	for i in lst:
+		if i not in o:
+			o.append(i)
+	return o
 
 
 def type_str2list(string):
