@@ -163,13 +163,18 @@ def remove_empty_lines(lst):
 	return [x for x in lst if x]
 
 
-def delete_element_in_dictlist(dic, elem):
+def delete_element_in_dictlist(dic, key):
 	"""Удалить ключ из списка словарей"""
 	for i in dic:
-		del i[elem]
+		if key in i:
+			del i[key]
 
 
-# return dic
+def rename_key_in_listdict(dic, key_old, key_new, value_if_none=None):
+	for i in dic:
+		i[key_new] = i.get(key_old, value_if_none)
+		if key_old in i:
+			del i[key_old]
 
 
 def list_of_uniques(lst):
@@ -313,6 +318,14 @@ def url_params_str_to_list(url, unquote=True):
 		url = urllib.parse.unquote(url)
 	d = urllib.parse.parse_qsl(url, keep_blank_values=True)
 	return {k: v[0] for k, v in d.items()}
+
+
+def replace_element_to_text(etree_, elem, textnew):
+	"""lxml: замена элемента на текст"""
+	from lxml import etree
+	for r in etree_.cssselect(elem):
+		r.tail = textnew + r.tail if r.tail else textnew
+	etree.strip_elements(etree_, elem, with_tail=False)
 
 
 # alpha version ---
