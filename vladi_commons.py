@@ -50,11 +50,13 @@ def file_readlines(filename):
 
 
 def file_readlines_in_list_interlines(filename):
-    r = [
-        # ["line1", "line2"],
-        # ["line3", "line4"],
-    ]
+    # r = [["line1", "line2"], ["line3", "line4"], ]
     listlines = file_readlines(filename)
+    return read_list_interlines(listlines)
+
+
+def read_list_interlines(listlines):
+    # r = [["line1", "line2"], ["line3", "line4"], ]
     i = 0
     while i <= len(listlines) - 1:
         r.append([listlines[i], listlines[i + 1]])
@@ -185,15 +187,20 @@ def list_of_uniques(lst):
     return o
 
 
-def listdic_pop(lst, key, val):
+def listdic_pop(lst, key, val, ignorecase=False):
     """pop из списка словарей по значению ключа"""
     i = None
     for d in lst:
-        if d[key] == val:
-            i = lst.index(d)
-            break
+        if ignorecase:
+            if d[key].lower() == val.lower():
+                i = lst.index(d)
+                break
+        else:
+            if d[key] == val:
+                i = lst.index(d)
+                break
     if i:
-        return lst.index(i)
+        return lst.pop(i)
 
 
 def type_str2list(string):
