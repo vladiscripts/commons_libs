@@ -9,7 +9,7 @@ from sys import version_info
 
 PYTHON_VERSION = version_info.major
 if PYTHON_VERSION == 3:
-    from urllib.parse import urlencode, quote  # python 3
+    from urllib.parse import urlsplit, parse_qs, parse_qsl, unquote, quote, urljoin, urlencode, quote_plus, urldefrag
 else:
     from urllib import urlencode, quote  # python 2.7
 
@@ -18,6 +18,12 @@ else:
 
 
 # ----------
+
+def filepaths_of_directory(directory, filename_ext):
+    # filename_ext = '.xlsx'
+    filenames = filter(lambda x: x.endswith(filename_ext), os.listdir(directory))
+    full_files_paths = [os.path.join(DIRECTORY, filename) for filename in filenames]
+    return full_files_paths
 
 
 def file_savelines(filename, strlist, append=False):
@@ -55,11 +61,15 @@ def file_readlines_in_list_interlines(filename):
     return read_list_interlines(listlines)
 
 
-def read_list_interlines(listlines):
+def read_list_interlines(listlines, strip_lines=False):
     # r = [["line1", "line2"], ["line3", "line4"], ]
+    r = []
     i = 0
     while i <= len(listlines) - 1:
-        r.append([listlines[i], listlines[i + 1]])
+        if strip_lines:
+            r.append([listlines[i].strip(), listlines[i + 1].strip()])
+        else:
+            r.append([listlines[i], listlines[i + 1]])
         i += 2
     return r
 
@@ -111,10 +121,13 @@ def pickle_data_from_file(filename):
     return data
 
 
-def csv_read(filename, csv_skip_firstline=None):
+def csv_read(filename, csv_skip_firstline=False, return_dict=False):
     import csv
     with open(filename) as f:
-        reader = csv.reader(f)  # reader = csv.DictReader(f)
+        if return_dict:
+            reader = csv.DictReader(f)
+        else:
+            reader = csv.reader(f)
         if csv_skip_firstline:
             next(reader)
         return tuple(row for row in reader)
@@ -203,6 +216,10 @@ def listdic_pop(lst, key, val, ignorecase=False):
         return lst.pop(i)
 
 
+def sort_list_of_dict(list_to_be_sorted, key):
+    return sorted(list_to_be_sorted, key=lambda k: k[key])
+
+
 def type_str2list(string):
     """Строку в список"""
     return [string] if isinstance(string, str) else string
@@ -216,8 +233,10 @@ def list_clean_empty_strs(lst):
     """Чистка пустых строк в списке"""
     # Тестировано: import timeit; timeit.timeit(test_func, number=10000)
     # return [p.strip() for p in lst.splitlines() if p.strip() != '']
-    # return [lst.remove(v) for v in lst if v == '' and v.isspace()]  # Чистка пустых строк в списке
+    # return [lst.remove(v) for v in lst if v == '' and v.isspace()]
     # return [v.strip() for v in lst if not v.isspace() and v != '']
+
+    # filter(lambda x: x.strip() != '', k)
     return [p.strip() for p in lst if p.strip() != '']
 
 
@@ -248,7 +267,34 @@ def split_list_per_line_count(lst, chunk_size):
 
 def find_str_in_el_of_list_and_select(lst, search_str):
     """Ищет подстроку в строковых элементах списка, и возвращает найденный элемент."""
-    return [s for s in lst if type(s) == str and s.find(search_str) >= 0][0]
+    # return [s for s in lst if type(s) == str and s.find(search_str) >= 0][0]
+    for s in lst:
+        if isinstance(s, str) and search_str in s:
+            return s
+
+
+class Dict2class(object):
+    """Преобразует атрибутов словаря в своства класса, для более удобного обращения к ним.
+    https://stackoverflow.com/questions/1639174/creating-class-instance-properties-from-a-dictionary/1639249
+    Инициализация:
+    instance = dict2class(dictionary)
+    instance.field
+    """
+
+    def __init__(self, dictionary):
+        self.__dict__.update(dictionary)
+
+
+class Dictprop(dict):
+    """Дополняет атрибуты словаря, использованием как свойствами класса, для более удобного обращения к ним.
+    https://stackoverflow.com/questions/1639174/creating-class-instance-properties-from-a-dictionary/1639249
+    Инициализация:
+    instance = dictprop(dictionary)
+    instance.field
+    """
+
+    def __getattr__(self, name):
+        return self[name]
 
 
 def re_compile_list(re_groups):
@@ -337,6 +383,16 @@ def url_params_str_to_list(url, unquote=True):
     return {k: v[0] for k, v in d.items()}
 
 
+def change_url_param(url, param, newvalue):
+    parsed = urlsplit(url)
+    query_dict = parse_qs(parsed.query)
+    query_dict[param][0] = newvalue
+    query_new = urlencode(query_dict, doseq=True)
+    parsed = parsed._replace(query=query_new)
+    url_new = parsed.geturl()
+    return url_new
+
+
 # def replace_element_to_text(etree_, elem, textnew):
 # """!удаляет текст элементов"""
 # 	"""lxml: замена элемента на текст"""
@@ -369,3 +425,11 @@ def ssh_connect(host, user, passw, port=22):
     ssh.close()
     #
     print(str(data))
+
+
+# ---------------- Excel
+def get_rows_from_sheet(ws):
+    rows_listdicts = []
+    for row in ws.iter_rows(min_row=1, min_col=1, max_row=ws.max_row, max_col=ws.max_column):
+        rows_listdicts.append([cell.value for cell in row])
+    return rows_listdicts
