@@ -70,3 +70,62 @@ class MyScrapyCommons:
 		if email not in emails:
 			emails.append(email)
 		return emails
+
+
+
+# Scrapy, работа через сессию. Из консоли или Jypiter
+from scrapy.http import TextResponse, Response
+# request через сессию
+def open_reqsession():
+    s = requests.Session()
+    s.headers = headers
+    # s.proxies.update(proxyDict)
+    return s
+s = open_reqsession()
+r = s.get(captcha_url)
+
+# Scrapy: парсинг в текстовой страницы
+response = TextResponse(r.url, body=r.text, encoding='utf-8')
+
+# Scrapy: парсинг и сохранение картинки в байтовом формате
+response = Response(r.url, body=r.content)
+with open('/tmp/captcha.jpg', 'wb') as out_image:
+    out_image.write(response.body)  
+
+
+
+# Разгадывание капчи через rucaptcha
+RUCAPTCHA_KEY = "74d07cbcef63e8e345548835f0ba430b"
+
+# просто
+capchasolve = ImageCaptcha.ImageCaptcha(rucaptcha_key=RUCAPTCHA_KEY, service_type='rucaptcha', 
+	save_format='const').captcha_handler(
+#     captcha_link=captcha_url,
+    captcha_file=captcha_path,
+)
+captchatext = capchasolve['captchaSolve']
+
+# с проверками на ошибки
+def send_captcha_for_solve(captcha_link=None, captcha_file=None):
+	# captcha_link = url, или captcha_file
+    print('Sending captcha to the solve service')
+    # # Возвращается строка-расшифровка капчи
+    user_answer = ImageCaptcha.ImageCaptcha(rucaptcha_key=RUCAPTCHA_KEY, 
+    	service_type='rucaptcha', # save_format='const'  # или 'temp' (по умолчанию)
+        ).captcha_handler(captcha_link=captcha_link, captcha_file=captcha_file)    
+    if user_answer['errorId'] == 1:
+        # Error, stop work
+        # Тело ошибки, если есть
+        print(user_answer['errorBody'])
+        if 'ERROR_CAPTCHA_UNSOLVABLE' in user_answer['errorBody']:
+            pass
+        else:
+            exit()
+
+    elif user_answer['errorId'] == 0:
+        # решение капчи
+        print('captchaSolve: %s, taskId: %s' % (user_answer['captchaSolve'], user_answer['taskId']))
+        return user_answer
+
+    elif user_answer['errorId'] > 1:
+        pass
