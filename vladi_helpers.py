@@ -240,6 +240,28 @@ def list_clean_empty_strs(lst):
     return [p.strip() for p in lst if p.strip() != '']
 
 
+def join_and_strip(lststr, skipemptystr=False, sep=''):
+    """join() списка, со strip() его элементов - чисткой пробелов, и пустых строк"""
+    return sep.join(self.striplist(lststr, skipemptystr=skipemptystr)).replace('  ', ' ').strip()
+
+
+def striplist(lststr, skipemptystr=False):
+    """strip() значений списка"""
+    if skipemptystr:
+        r = [s.strip() for s in lststr if s.strip()]
+    else:
+        r = [s.strip() for s in lststr]
+    return r
+
+
+def regex(regex, text):
+    """возвращает найденный regex group(1), иначе пустую строку"""
+    if regex:
+        s = re.search(regex, text)
+        r = s.group(1) if s else ''
+        return r
+
+
 def list2str_qouted(delimiter, list_str, normalizations=False):
     from wikiapi import normalization_pagename
     if normalizations:
