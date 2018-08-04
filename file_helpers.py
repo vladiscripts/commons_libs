@@ -6,6 +6,7 @@
 # работа с файлами в utf-8
 #
 from sys import version_info
+import os
 
 PYTHON_VERSION = version_info.major
 if PYTHON_VERSION == 3:
@@ -22,11 +23,11 @@ import re
 from urllib.parse import urlparse, parse_qs, parse_qsl, unquote, quote
 
 
-
 def filepaths_of_directory(directory, filename_ext):
+    """Список файлов директории с фильтром по расширению"""
     # filename_ext = '.xlsx'
     filenames = filter(lambda x: x.endswith(filename_ext), os.listdir(directory))
-    full_files_paths = [os.path.join(DIRECTORY, filename) for filename in filenames]
+    full_files_paths = [os.path.join(directory, filename) for filename in filenames]
     return full_files_paths
 
 
@@ -174,4 +175,3 @@ def csv_save_dict_fromListWithHeaders(path, data):
     # 	my_list.append(inner_dict)
     inner_dic = (dict(zip(fieldnames, values)) for values in data[1:])
     csv_save_dict(path, inner_dic, fieldnames=data[0], headers=True)
-
