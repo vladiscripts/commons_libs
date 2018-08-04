@@ -5,6 +5,7 @@
 # Библиотека общих функций
 #
 from sys import version_info
+import re
 
 PYTHON_VERSION = version_info.major
 if PYTHON_VERSION == 3:
@@ -47,6 +48,18 @@ def list_of_uniques(lst):
     return o
 
 
+def listdict_of_uniques(listdict, key):
+    """чистка списка словарей от дубликатов, по уникальному ключу"""
+    unique_keys = set()
+    r = []
+    for d in listdict:
+        k = d[key]
+        if k not in unique_keys:
+            r.append(d)
+            unique_keys.add(k)
+    return r
+
+
 def listdic_pop(lst, key, val, ignorecase=False):
     """pop из списка словарей по значению ключа"""
     i = None
@@ -61,6 +74,13 @@ def listdic_pop(lst, key, val, ignorecase=False):
                 break
     if i:
         return lst.pop(i)
+
+
+def pop_list_by_value(lst, value):
+    """pop из списка по значению ключа"""
+    for i, k in enumerate(lst):
+        if k == value:
+            lst.pop(i)
 
 
 def sort_list_of_dict(list_to_be_sorted, key):
@@ -87,14 +107,16 @@ def list_clean_empty_strs(lst):
     return [p.strip() for p in lst if p.strip() != '']
 
 
-def join_and_strip(lststr, skipemptystr=False, sep=''):
+def join_and_strip(lststr, skip_empty_str=False, sep=''):
     """join() списка, со strip() его элементов - чисткой пробелов, и пустых строк"""
-    return sep.join(self.striplist(lststr, skipemptystr=skipemptystr)).replace('  ', ' ').strip()
+    striped = striplist(lststr, skip_empty_str=skip_empty_str)
+    s = sep.join(striped).replace('  ', ' ').strip()
+    return s
 
 
-def striplist(lststr, skipemptystr=False):
+def striplist(lststr, skip_empty_str=False):
     """strip() значений списка"""
-    if skipemptystr:
+    if skip_empty_str:
         r = [s.strip() for s in lststr if s.strip()]
     else:
         r = [s.strip() for s in lststr]
@@ -152,6 +174,9 @@ class Dict2class(object):
 
     def __init__(self, dictionary):
         self.__dict__.update(dictionary)
+        # альтернатива
+        # for k, v in dictionary.items():
+        #     setattr(self, k, v)
 
 
 class Dictprop(dict):
@@ -296,7 +321,7 @@ def ssh_connect(host, user, passw, port=22):
     print(str(data))
 
 
-# ---------------- Excel
+# Excel ----------------
 def get_rows_from_sheet(ws):
     rows_listdicts = []
     for row in ws.iter_rows(min_row=1, min_col=1, max_row=ws.max_row, max_col=ws.max_column):
