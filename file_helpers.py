@@ -175,3 +175,19 @@ def csv_save_dict_fromListWithHeaders(path, data):
     # 	my_list.append(inner_dict)
     inner_dic = (dict(zip(fieldnames, values)) for values in data[1:])
     csv_save_dict(path, inner_dic, fieldnames=data[0], headers=True)
+
+
+def csv_split_to_files_per_line_count(file_in, chunk_size):
+    """ разбиение файла csv по числу строк,  в новый файл.
+    file_out_tpl - f-string"""
+    from vladi_helpers import split_list_per_line_count
+    # from file_helpers import csv_read_dict, csv_save_dict
+    lst = csv_read_dict(file_in)
+    splitted = split_list_per_line_count(lst, chunk_size)
+    for i, z in enumerate(splitted):
+        # # path_sep = os.path.
+        # fpath, _, fname = file_in.rpartition('/')
+        # ffname, _, fext = fname.rpartition('.')
+        # fname_new = f'{fpath}/{ffname}{i}.{fext}'
+        f = f'/tmp/result{i}.csv'
+        csv_save_dict(f, z)
