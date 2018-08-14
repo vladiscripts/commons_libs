@@ -165,7 +165,7 @@ def find_str_in_el_of_list_and_select(lst, search_str):
 
 
 class Dict2class(object):
-    """Преобразует атрибутов словаря в своства класса, для более удобного обращения к ним.
+    """Загружает словаря в атрибуты класса
     https://stackoverflow.com/questions/1639174/creating-class-instance-properties-from-a-dictionary/1639249
     Инициализация:
     instance = dict2class(dictionary)
