@@ -177,17 +177,31 @@ def csv_save_dict_fromListWithHeaders(path, data):
     csv_save_dict(path, inner_dic, fieldnames=data[0], headers=True)
 
 
-def csv_split_to_files_per_line_count(file_in, chunk_size):
-    """ разбиение файла csv по числу строк,  в новый файл.
-    file_out_tpl - f-string"""
+def csv_split_to_files_per_line_count(file_in, rows_chunk_size: int):
+    """ разбиение файла csv по числу строк, в новый файл.
+    file_out_tpl - f-string
+    При больших файлах занимает много памяти. Если надо, можно попробовать записывать части сразу, не храня.
+    Или найти способ не загружать в память весь входной файл.
+    Или грузить его как список, а не словарь, взяв заголовки из первой строки в список.
+
+    на Doogle Drive в таблицах лимит 2.000.000 ячеек (делить на число столбцов). Может влезть больше если ячейки пустые
+    https://support.google.com/drive/answer/37603?visit_id=636698732475200834-4208785419&rd=1
+    на Excel лимит на листе 1 048 576 строк и 16 384 столбца
+    https://support.office.com/en-us/article/1672b34d-7043-467e-8e27-269d656771c3
+    """
     from vladi_helpers import split_list_per_line_count
     # from file_helpers import csv_read_dict, csv_save_dict
     lst = csv_read_dict(file_in)
-    splitted = split_list_per_line_count(lst, chunk_size)
+    # save on split without store
+    # for i in range(0, len(lst), rows_chunk_size):
+    #     z = lst[i:i + chunk_size]
+    #     csv_save_dict(f, z)
+    splitted = split_list_per_line_count(lst, rows_chunk_size)
     for i, z in enumerate(splitted):
         # # path_sep = os.path.
         # fpath, _, fname = file_in.rpartition('/')
         # ffname, _, fext = fname.rpartition('.')
         # fname_new = f'{fpath}/{ffname}{i}.{fext}'
+        i += 1
         f = f'/tmp/result{i}.csv'
         csv_save_dict(f, z)
