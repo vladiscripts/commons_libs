@@ -151,9 +151,9 @@ def lines_two_elements2list(text):
     return [[s[0].strip(), s[1].strip()] for s in text if s[0].strip() != '']
 
 
-def split_list_per_line_count(lst, chunk_size):
+def split_list_per_line_count(lst, rows_chunk_size: int):
     """Разделение списка на части по числу строк."""
-    return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
+    return [lst[i:i + rows_chunk_size] for i in range(0, len(lst), rows_chunk_size)]
 
 
 def find_str_in_el_of_list_and_select(lst, search_str):
