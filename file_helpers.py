@@ -7,6 +7,8 @@
 #
 from sys import version_info
 import os
+import errno
+import csv
 
 PYTHON_VERSION = version_info.major
 if PYTHON_VERSION == 3:
@@ -29,6 +31,37 @@ def filepaths_of_directory(directory, filename_ext):
     filenames = filter(lambda x: x.endswith(filename_ext), os.listdir(directory))
     full_files_paths = [os.path.join(directory, filename) for filename in filenames]
     return full_files_paths
+
+
+''
+
+
+def make_directory(path, normalize=True):
+    if normalize:
+        path = os.path.normpath(path)
+    try:
+        os.makedirs(path)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
+
+
+def save_file_text_makedir(path, pagename, text, normalize=True):
+    """ Save main to html """
+    make_directory(path, normalize=True)
+    if normalize:
+        pagename = os.path.normpath(pagename)
+    fpath = os.path.join(path, pagename)
+    file_savetext(fpath, text)
+
+
+def save_file_bin_makedir(path, pagename, data, normalize=True):
+    """ Save main to html """
+    make_directory(path, normalize=True)
+    if normalize:
+        pagename = os.path.normpath(pagename)
+    fpath = os.path.join(path, pagename)
+    file_save(fpath, data)
 
 
 def file_savelines(filename, strlist, append=False):
@@ -113,6 +146,11 @@ def save_error_log(filename, text):
     file_savelines(filename, text, True)
 
 
+def file_save(filepath, data):
+    with open(filepath, 'wb') as f:
+        f.write(data)
+
+
 def pickle_store_to_file(filename, data):
     import pickle
     with open(filename, 'wb') as f:
@@ -127,7 +165,6 @@ def pickle_data_from_file(filename):
 
 
 def csv_read(filename, csv_skip_firstline=False, return_dict=False):
-    import csv
     with open(filename) as f:
         if return_dict:
             reader = csv.DictReader(f)
@@ -139,14 +176,12 @@ def csv_read(filename, csv_skip_firstline=False, return_dict=False):
 
 
 def csv_read_dict(filename, delimiter=','):
-    import csv
     with open(filename) as f:
         reader = csv.DictReader(f, delimiter=delimiter)
         return tuple(row for row in reader)
 
 
 def csv_save(path, list_str, delimiter=','):
-    import csv
     with open(path, "w", newline="") as f:
         writer = csv.writer(f, delimiter)
         for row in list_str:
@@ -205,3 +240,11 @@ def csv_split_to_files_per_line_count(file_in, rows_chunk_size: int):
         i += 1
         f = f'/tmp/result{i}.csv'
         csv_save_dict(f, z)
+
+
+# Excel ----------------
+def get_rows_from_sheet(ws):
+    rows_listdicts = []
+    for row in ws.iter_rows(min_row=1, min_col=1, max_row=ws.max_row, max_col=ws.max_column):
+        rows_listdicts.append([cell.value for cell in row])
+    return rows_listdicts

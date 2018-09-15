@@ -5,6 +5,7 @@
 # Библиотека общих функций
 #
 from sys import version_info
+import os
 import re
 
 PYTHON_VERSION = version_info.major
@@ -321,9 +322,24 @@ def ssh_connect(host, user, passw, port=22):
     print(str(data))
 
 
-# Excel ----------------
-def get_rows_from_sheet(ws):
-    rows_listdicts = []
-    for row in ws.iter_rows(min_row=1, min_col=1, max_row=ws.max_row, max_col=ws.max_column):
-        rows_listdicts.append([cell.value for cell in row])
-    return rows_listdicts
+# HTML -----------------
+# Selenium
+def set_attr_selenium(driver, element, ename, value):
+    driver.execute_script(f"arguments[0].setAttribute('{ename}','{value}')", element)
+
+
+def del_attr_selenium(driver, element, ename):
+    driver.execute_script(f"arguments[0].removeAttribute('{ename}')", element)
+
+
+def split_urlfile(url, normalize=True):
+    urlparsed = urlparse(url)
+    path = urlparsed.path.rpartition('/')[0]
+    filename = urlparsed.path.rpartition('/')[2]
+    if normalize:
+        path, filename = os.path.normpath(path), os.path.normpath(filename)
+    return path, filename, urlparsed
+
+
+def cut_string_with_return_sep(string, sep_string):
+    return string.partition(sep_string)[0] + sep_string
