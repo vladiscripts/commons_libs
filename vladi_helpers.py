@@ -166,7 +166,7 @@ def find_str_in_el_of_list_and_select(lst, search_str):
 
 
 class Dict2class(object):
-    """Загружает словаря в атрибуты класса
+    """Загружает словарь в атрибуты класса
     https://stackoverflow.com/questions/1639174/creating-class-instance-properties-from-a-dictionary/1639249
     Инициализация:
     instance = dict2class(dictionary)
@@ -187,6 +187,9 @@ class Dictprop(dict):
     instance = dictprop(dictionary)
     instance.field
     """
+
+    def __init__(self, dictionary):
+        self.__dict__.update(dictionary)
 
     def __getattr__(self, name):
         return self[name]
