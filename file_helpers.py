@@ -165,7 +165,7 @@ def pickle_data_from_file(filename):
 
 
 def csv_read(filename, csv_skip_firstline=False, return_dict=False):
-    with open(filename) as f:
+    with open(filename, encoding='utf-8') as f:
         if return_dict:
             reader = csv.DictReader(f)
         else:
@@ -176,13 +176,13 @@ def csv_read(filename, csv_skip_firstline=False, return_dict=False):
 
 
 def csv_read_dict(filename, delimiter=','):
-    with open(filename) as f:
+    with open(filename, encoding='utf-8') as f:
         reader = csv.DictReader(f, delimiter=delimiter)
         return tuple(row for row in reader)
 
 
 def csv_save(path, list_str, delimiter=','):
-    with open(path, "w", newline="") as f:
+    with open(path, "w", newline="", encoding='utf-8') as f:
         writer = csv.writer(f, delimiter)
         for row in list_str:
             writer.writerow(row)
@@ -193,7 +193,7 @@ def csv_save_dict(path, dic, fieldnames=None, delimiter=',', headers=True):
     import csv
     if not fieldnames:
         fieldnames = dic[0].keys()
-    with open(path, "w", newline='') as f:
+    with open(path, "w", newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, delimiter=delimiter, fieldnames=fieldnames)
         if headers:
             writer.writeheader()
