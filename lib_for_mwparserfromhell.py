@@ -6,6 +6,7 @@ import re
 import mwparserfromhell
 
 
+
 def listtpls(wikicode, tplname):
     return [tpl for tpl in wikicode.filter_templates() if tpl.name.matches(tplname)]
 

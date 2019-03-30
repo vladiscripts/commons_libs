@@ -76,8 +76,9 @@ def file_savetext(filename, text):
         f.write(text)
 
 
-def file_readtext(filename):
-    with open(filename, 'r', encoding='utf-8') as f:
+def file_readtext(filename, encoding='utf-8'):
+    # Если ошибка '0xff in position 0' попробовать 'utf-16'
+    with open(filename, 'r', encoding=encoding) as f:
         text = f.read()
     return text
 
@@ -183,7 +184,7 @@ def csv_read_dict(filename, delimiter=','):
 
 def csv_save(path, list_str, delimiter=','):
     with open(path, "w", newline="", encoding='utf-8') as f:
-        writer = csv.writer(f, delimiter)
+        writer = csv.writer(f, delimiter=delimiter)
         for row in list_str:
             writer.writerow(row)
 

@@ -189,6 +189,7 @@ class Dictprop(dict):
     """
 
     def __init__(self, dictionary):
+        super().__init__()
         self.__dict__.update(dictionary)
 
     def __getattr__(self, name):
@@ -237,6 +238,21 @@ def byte2utf(string):
     string = urllib.parse.quote_from_bytes(string)
     string = urllib.parse.unquote(string, encoding='utf8')
     return string
+
+
+def benchmark(func):
+    # декоратор @benchmark
+    # считает скорость выполнения функции
+    import time
+
+    def wrapper(*kargs, **kwargs):
+        start = time.time()
+        return_value = func(*kargs, **kwargs)
+        end = time.time()
+        print(f'[*] Время выполнения: {end - start} секунд.')
+        return return_value
+
+    return wrapper
 
 
 # Wiki ---
