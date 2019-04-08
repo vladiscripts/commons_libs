@@ -165,6 +165,24 @@ def find_str_in_el_of_list_and_select(lst, search_str):
             return s
 
 
+def json_like_to_dict(text):
+    """Пример парсера json-like строк из js-скриптов в словарь Python"""
+    re_j = re.compile("aScriptName\s*=\s*\{(.*?)\}", flags=re.S)
+    re_b = re.compile("(^|,)(\s*[^\s]+\s*:)", flags=re.S)  # разделитель параметров [,], значений [:]
+    # json.loads не работает, значения не обернуты в кавычки
+    # json.loads(re.sub("(^|,)(\s*[^\s]+\s*:\s*)'(.*?)'", r'\1\2"\3"', j.group(1).replace('\n', ''), flags=re.S))
+    j = re_j.search(text)
+    d = {}
+    if j:
+        params = re_b.sub(r'%#%\2', j.group(1)).split('%#%')  # split параметров, с уст. временн. разделителя
+        for p in params:
+            if p.strip() != '':
+                k, _, v = p.partition(':')
+                key = k.strip().strip("'")
+                value = v.strip().strip("'")
+                d[key] = value
+
+
 class Dict2class(object):
     """Загружает словарь в атрибуты класса
     https://stackoverflow.com/questions/1639174/creating-class-instance-properties-from-a-dictionary/1639249
