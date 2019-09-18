@@ -1,3 +1,1 @@
-* Мои общие библиотеки. 
-* Библиотека для wiki-парсера https://github.com/earwig/mwparserfromhell.
-* Класс для работы с WikiAPI, логин и редактирование страниц. Необходим подаккаунт бота, см. мануалы wikiAPI. Полученные логин/пароль положить в файл рядом со скриптом.
+My helpers for Python. Some them are beta-version, as is.
