@@ -6,7 +6,6 @@ import re
 import mwparserfromhell
 
 
-
 def listtpls(wikicode, tplname):
     return [tpl for tpl in wikicode.filter_templates() if tpl.name.matches(tplname)]
 
@@ -17,10 +16,13 @@ def tpl_add_param(tpl, param, value):
 
 
 def removeTplParameters(tpl, keys):
-    # if type(keys) == str: keys = (keys,)
+    if keys and isinstance(keys, str): keys = (keys,)
     for k in keys:
         if tpl.has(k): tpl.remove(k)
-
+    return True
+# def removeTplParameter(tpl, key):
+#     if tpl.has(key): tpl.remove(key)
+#     return True
 
 def remove_parameters(wikicode, tplname, keys):
     for tpl in listtpls(wikicode, tplname):
@@ -143,8 +145,8 @@ def getPagenameFromLink(tpl, paramlink, reTitleFromLink):
 
 def deleteEmptyParam(tpl, keys):
     for k in keys:
-        if tpl.has(k) and re.match('^\s*$', str(tpl.get(
-                k).value)):  # and re.match('^(?:\s*|БСЭ|Большая советская энциклопедия)$', str(tpl.get(k).value)):
+        if tpl.has(k) and re.match('^\s*$', str(tpl.get(k).value)):
+            # and re.match('^(?:\s*|БСЭ|Большая советская энциклопедия)$', str(tpl.get(k).value)):
             tpl.remove(k)
 
 
@@ -167,9 +169,21 @@ def replaceParamValue(tpl, parameter, rePattern, repl):
         tpl.get(parameter).value = re.sub(rePattern, repl, s)
 
 
+def param_value_clear(tpl, param, new_val=''):
+    if tpl.has(param):
+        tpl.get(param).value = new_val  # '\n'
+
+
 def paramIsEmpty(tpl, parameter):
     if re.match('^\s*$', str(tpl.get(parameter).value)):
         return True
+
+
+def get_param_value(tpl, pname):
+    for p in tpl.params:
+        p_name=p.name.strip()
+        if p_name == pname:
+            return p.value.strip()
 
 
 def pagenameFromUrl(regexp, url):
@@ -213,3 +227,8 @@ def getparameters_aliases(tpl, list_parameters_to_search):
     for p in list_parameters_to_search:
         if tpl.has(p):
             return tpl.get(p).value
+
+
+def getparameter_value_strip(tpl, param):
+    if tpl.has(p):
+        return tpl.get(p).value

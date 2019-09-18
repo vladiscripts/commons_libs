@@ -2,8 +2,8 @@
 # coding: utf-8
 import requests
 from urllib.parse import urlencode, quote
-# from vladi_commons import vladi_commons
-# from vladi_commons.vladi_commons import csv_save_dict_fromListWithHeaders, json_store_to_file, json_data_from_file
+# from vladi_helpers import vladi_helpers
+# from vladi_helpers.vladi_commons import csv_save_dict_fromListWithHeaders, json_save_to_file, json_load_from_file
 import sqlite3
 import json
 from lxml.html import fromstring

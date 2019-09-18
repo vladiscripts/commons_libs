@@ -8,18 +8,23 @@ from sys import version_info
 import os
 import re
 
+# from lxml.html import fromstring
+# import html5lib
+# import codecs
 PYTHON_VERSION = version_info.major
 if PYTHON_VERSION == 3:
     from urllib.parse import urlsplit, parse_qs, parse_qsl, unquote, quote, urljoin, urlencode, quote_plus, urldefrag
 else:
     from urllib import urlencode, quote  # python 2.7
-from lxml.html import fromstring
 import re
-# import html5lib
 from urllib.parse import urlparse, parse_qs, parse_qsl, unquote, quote
 
 
-# import codecs
+def get_item_from_listdict(listdicts, key, value):
+    for d in listdicts:
+        if key in d and d[key] == value:
+            return d
+
 
 def remove_empty_lines(lst):
     """чистка от пустых строк"""
@@ -49,15 +54,15 @@ def list_of_uniques(lst):
     return o
 
 
-def listdict_of_uniques(listdict, key):
-    """чистка списка словарей от дубликатов, по уникальному ключу"""
-    unique_keys = set()
+def listdict_of_uniques(listdict, key: str):
+    """чистка списка словарей от дубликатов, по ключу"""
+    uniques = set()
     r = []
     for d in listdict:
         k = d[key]
-        if k not in unique_keys:
+        if k not in uniques:
             r.append(d)
-            unique_keys.add(k)
+            uniques.add(k)
     return r
 
 
@@ -84,8 +89,8 @@ def pop_list_by_value(lst, value):
             lst.pop(i)
 
 
-def sort_list_of_dict(list_to_be_sorted, key):
-    return sorted(list_to_be_sorted, key=lambda k: k[key])
+def sort_list_of_dict(list_to_sort, key):
+    return sorted(list_to_sort, key=lambda k: k[key])
 
 
 def type_str2list(string):
@@ -132,6 +137,15 @@ def regex(regex, text):
         return r
 
 
+# def repl(m):
+#     """regex замена, с inline модификацией"""
+#     n = int(m.group(2))
+#     i = 1
+#     if n >= 127 and n <= 179: i = 2
+#     return n + i
+# ss = re.sub(r(a string)(\d+)', lambda m: f'{m.group(1)}{repl(m)}{m.group(3)}', t)
+
+
 def list2str_qouted(delimiter, list_str, normalizations=False):
     from wikiapi import normalization_pagename
     if normalizations:
@@ -167,8 +181,8 @@ def find_str_in_el_of_list_and_select(lst, search_str):
 
 def json_like_to_dict(text):
     """Пример парсера json-like строк из js-скриптов в словарь Python"""
-    re_j = re.compile("aScriptName\s*=\s*\{(.*?)\}", flags=re.S)
-    re_b = re.compile("(^|,)(\s*[^\s]+\s*:)", flags=re.S)  # разделитель параметров [,], значений [:]
+    re_j = re.compile(r"aScriptName\s*=\s*\{(.*?)\}", flags=re.S)
+    re_b = re.compile(r"(^|,)(\s*[^\s]+\s*:)", flags=re.S)  # разделитель параметров [,], значений [:]
     # json.loads не работает, значения не обернуты в кавычки
     # json.loads(re.sub("(^|,)(\s*[^\s]+\s*:\s*)'(.*?)'", r'\1\2"\3"', j.group(1).replace('\n', ''), flags=re.S))
     j = re_j.search(text)
@@ -212,6 +226,14 @@ class Dictprop(dict):
 
     def __getattr__(self, name):
         return self[name]
+
+
+class Row(dict):
+    """Словарь с точечной нотацией как у класса, и с определёнными атрибутами"""
+    __dict__ = 'pid', 'title', 'seller', 'seller_rating', 'seller_reviews', 'category_slug'
+
+    def __setattr__(self, key, value):
+        self.__setitem__(key, value)
 
 
 def re_compile_list(re_groups):
@@ -380,3 +402,25 @@ def split_urlfile(url, normalize=True):
 
 def cut_string_with_return_sep(string, sep_string):
     return string.partition(sep_string)[0] + sep_string
+
+
+# lxml
+def remove_empty_tags(htmlelement, convert_to_str: bool = False, tags_ignore: list = None):
+    '''Уборка пустых тегов'''
+    from lxml.html import fromstring, tostring
+    # tags_ignore = ['br', 'img', 'a']
+
+    def recursively_empty(e):
+        if tags_ignore and e.tag in tags_ignore \
+                or e.text:
+            return False
+        return all((recursively_empty(c) for c in e.iterchildren()))
+
+    for e in htmlelement:
+        if recursively_empty(e):
+            parent = e.getparent()
+            parent.remove(e)
+
+    if convert_to_str:
+        return tostring(htmlelement, encoding='unicode')
+    return htmlelement

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8  -*-#
+# coding: utf-8
 # author: https://github.com/vladiscripts
 #
 # Библиотека общих функций:
@@ -9,23 +9,22 @@ from sys import version_info
 import os
 import errno
 import csv
+from typing import List
 
 PYTHON_VERSION = version_info.major
 if PYTHON_VERSION == 3:
     from urllib.parse import urlsplit, parse_qs, parse_qsl, unquote, quote, urljoin, urlencode, quote_plus, urldefrag
 else:
     from urllib import urlencode, quote  # python 2.7
-from vladi_commons.vladi_helpers import list_clean_empty_strs
-# from vladi_commons.vladi_commons import csv_save_dict_fromListWithHeaders, json_store_to_file, json_data_from_file
+from vladi_helpers.vladi_helpers import list_clean_empty_strs
 import sqlite3
 import json
-from lxml.html import fromstring
+from lxml.html import fromstring  # import html5lib
 import re
-# import html5lib
 from urllib.parse import urlparse, parse_qs, parse_qsl, unquote, quote
 
 
-def filepaths_of_directory(directory, filename_ext):
+def filepaths_of_directory(directory: str, filename_ext: str = ''):
     """Список файлов директории с фильтром по расширению"""
     # filename_ext = '.xlsx'
     filenames = filter(lambda x: x.endswith(filename_ext), os.listdir(directory))
@@ -33,10 +32,7 @@ def filepaths_of_directory(directory, filename_ext):
     return full_files_paths
 
 
-''
-
-
-def make_directory(path, normalize=True):
+def make_directory(path: str, normalize=True):
     if normalize:
         path = os.path.normpath(path)
     try:
@@ -46,7 +42,7 @@ def make_directory(path, normalize=True):
             raise
 
 
-def save_file_text_makedir(path, pagename, text, normalize=True):
+def save_file_text_makedir(path: str, pagename: str, text: str, normalize=True):
     """ Save main to html """
     make_directory(path, normalize=True)
     if normalize:
@@ -55,7 +51,7 @@ def save_file_text_makedir(path, pagename, text, normalize=True):
     file_savetext(fpath, text)
 
 
-def save_file_bin_makedir(path, pagename, data, normalize=True):
+def save_file_bin_makedir(path: str, pagename: str, data, normalize=True):
     """ Save main to html """
     make_directory(path, normalize=True)
     if normalize:
@@ -64,26 +60,26 @@ def save_file_bin_makedir(path, pagename, data, normalize=True):
     file_save(fpath, data)
 
 
-def file_savelines(filename, strlist, append=False):
+def file_savelines(filename: str, strlist: List[str], append=False):
     mode = 'a' if append else 'w'
     text = '\n'.join(strlist)
     with open(filename, mode, encoding='utf-8') as f:
         f.write(text)
 
 
-def file_savetext(filename, text):
+def file_savetext(filename: str, text: str):
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(text)
 
 
-def file_readtext(filename, encoding='utf-8'):
+def file_readtext(filename: str, encoding='utf-8'):
     # Если ошибка '0xff in position 0' попробовать 'utf-16'
     with open(filename, 'r', encoding=encoding) as f:
         text = f.read()
     return text
 
 
-def file_readlines(filename):
+def file_readlines(filename: str):
     if PYTHON_VERSION == 3:
         with open(filename, 'r', encoding='utf-8') as f:
             arr_strings = f.read().splitlines()
@@ -94,13 +90,13 @@ def file_readlines(filename):
     return list_clean_empty_strs(arr_strings)
 
 
-def file_readlines_in_list_interlines(filename):
+def file_readlines_in_list_interlines(filename: str):
     # r = [["line1", "line2"], ["line3", "line4"], ]
     listlines = file_readlines(filename)
     return read_list_interlines(listlines)
 
 
-def read_list_interlines(listlines, strip_lines=False):
+def read_list_interlines(listlines: List[str], strip_lines=False):
     # r = [["line1", "line2"], ["line3", "line4"], ]
     r = []
     i = 0
@@ -113,20 +109,20 @@ def read_list_interlines(listlines, strip_lines=False):
     return r
 
 
-def json_store_to_file(filename, data):
-    import json, io
-    with io.open(filename, 'w', encoding='utf-8') as f:
+def json_save_to_file(filename: str, data):
+    import json
+    with open(filename, 'w', encoding='utf-8') as f:
         f.write(json.dumps(data, ensure_ascii=False, sort_keys=True, indent=4))
 
 
-def json_data_from_file(filename):
-    import json, io
-    with io.open(filename, 'r', encoding='utf-8') as f:
+def json_load_from_file(filename: str):
+    import json
+    with open(filename, 'r', encoding='utf-8') as f:
         data = json.load(f)
     return data
 
 
-def jsonlines_from_file(filename):
+def jsonlines_from_file(filename: str):
     """Чтение JSONlines (.jl) в список словарей"""
     import json
     lst = file_readlines(filename)
@@ -134,38 +130,55 @@ def jsonlines_from_file(filename):
     return d
 
 
-def json_element_of_listdicts_to_file(filename, dic, elem):
+def json_element_of_listdicts_to_file(filename: str, listdicts: List[dict], elem):
     """Запись элемента из списка словарей в json-файл"""
     list_elements = [i[elem] for i in dic]
-    json_store_to_file(filename, list_elements)
+    json_save_to_file(filename, list_elements)
 
 
-def save_error_log(filename, text):
+def jsonline_save_to_file(filename: str, data):
+    # https://jsonlines.readthedocs.io
+    import jsonlines
+    with jsonlines.open(filename, mode='w') as writer:
+        writer.write(data)
+
+
+def jsonline_load_from_file(filename: str):
+    # https://jsonlines.readthedocs.io
+    import jsonlines
+    lst = []
+    with jsonlines.open(filename) as reader:
+        for d in reader:
+            lst.append(d)
+    return lst
+
+
+def save_error_log(filename: str):
     import datetime
     now = datetime.datetime.now()
     time = now.strftime("%d-%m-%Y %H:%M")
     file_savelines(filename, text, True)
 
 
-def file_save(filepath, data):
+def file_save(filepath: str, data):
     with open(filepath, 'wb') as f:
         f.write(data)
 
 
-def pickle_store_to_file(filename, data):
+def pickle_store_to_file(filename: str, data):
     import pickle
     with open(filename, 'wb') as f:
         pickle.dump(data, f)
 
 
-def pickle_data_from_file(filename):
+def pickle_data_from_file(filename: str):
     import pickle
     with open(filename, 'rb') as f:
         data = pickle.load(f)
     return data
 
 
-def csv_read(filename, csv_skip_firstline=False, return_dict=False):
+def csv_read(filename: str, csv_skip_firstline=False, return_dict=False):
     with open(filename, encoding='utf-8') as f:
         if return_dict:
             reader = csv.DictReader(f)
@@ -176,20 +189,20 @@ def csv_read(filename, csv_skip_firstline=False, return_dict=False):
         return tuple(row for row in reader)
 
 
-def csv_read_dict(filename, delimiter=','):
+def csv_read_dict(filename: str, delimiter=','):
     with open(filename, encoding='utf-8') as f:
         reader = csv.DictReader(f, delimiter=delimiter)
         return tuple(row for row in reader)
 
 
-def csv_save(path, list_str, delimiter=','):
+def csv_save(path: str, list_str: List[List[str]], delimiter=','):
     with open(path, "w", newline="", encoding='utf-8') as f:
         writer = csv.writer(f, delimiter=delimiter)
         for row in list_str:
             writer.writerow(row)
 
 
-def csv_save_dict(path, dic, fieldnames=None, delimiter=',', headers=True):
+def csv_save_dict(path: str, listdic: List[dict], fieldnames=None, delimiter=',', headers=True):
     """Writes a CSV file using DictWriter"""
     import csv
     if not fieldnames:
@@ -202,7 +215,7 @@ def csv_save_dict(path, dic, fieldnames=None, delimiter=',', headers=True):
             writer.writerow(row)
 
 
-def csv_save_dict_fromListWithHeaders(path, data):
+def csv_save_dict_fromListWithHeaders(path: str, listdicts: List[dict]):
     """ ключи в первой строке списка"""
     # my_list = []
     fieldnames = data[0]
@@ -213,7 +226,7 @@ def csv_save_dict_fromListWithHeaders(path, data):
     csv_save_dict(path, inner_dic, fieldnames=data[0], headers=True)
 
 
-def csv_split_to_files_per_line_count(file_in, rows_chunk_size: int):
+def csv_split_to_files_per_line_count(file_in: str, rows_chunk_size: int):
     """ разбиение файла csv по числу строк, в новый файл.
     file_out_tpl - f-string
     При больших файлах занимает много памяти. Если надо, можно попробовать записывать части сразу, не храня.
@@ -241,6 +254,16 @@ def csv_split_to_files_per_line_count(file_in, rows_chunk_size: int):
         i += 1
         f = f'/tmp/result{i}.csv'
         csv_save_dict(f, z)
+
+
+def path_to_Chrome_according_OS():
+    from sys import builtin_module_names
+    from os import getenv
+    if 'nt' in builtin_module_names:
+        path = fr'"{getenv("ProgramFiles(x86)")}\Google\Chrome\Application\chrome.exe"'
+    else:
+        path = 'chromium-browser'
+    return path
 
 
 # Excel ----------------

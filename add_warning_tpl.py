@@ -247,5 +247,5 @@ class Add_warning_tpl:
 # 	]
 # }
 
-# pages_with_referrors = json_data_from_file(filename_listpages_errref_json)
+# pages_with_referrors = json_load_from_file(filename_listpages_errref_json)
 # test = Add_warning_tpl(name_of_warning_tpl, pages_with_referrors)
