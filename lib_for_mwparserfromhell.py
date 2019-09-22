@@ -15,20 +15,15 @@ def tpl_add_param(tpl, param, value):
         tpl.add(param, value)
 
 
-def removeTplParameters(tpl, keys):
+def removeTplParameters(tpl, keys, remove_value_only=False):
     if keys and isinstance(keys, str): keys = (keys,)
     for k in keys:
-        if tpl.has(k): tpl.remove(k)
+        if tpl.has(k):
+            if remove_value_only:
+                tpl.get(k).value = '\n' if '\n' in tpl.get(k).value else ''
+            else:
+                tpl.remove(k)
     return True
-# def removeTplParameter(tpl, key):
-#     if tpl.has(key): tpl.remove(key)
-#     return True
-
-def remove_parameters(wikicode, tplname, keys):
-    for tpl in listtpls(wikicode, tplname):
-        for k in keys:
-            if tpl.has(k): tpl.remove(k)
-    return wikicode
 
 
 def parametersNamesList(tpl):
@@ -181,7 +176,7 @@ def paramIsEmpty(tpl, parameter):
 
 def get_param_value(tpl, pname):
     for p in tpl.params:
-        p_name=p.name.strip()
+        p_name = p.name.strip()
         if p_name == pname:
             return p.value.strip()
 
