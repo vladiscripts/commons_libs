@@ -41,6 +41,15 @@ def make_directory(path: str, normalize=True):
         if e.errno != errno.EEXIST:
             raise
 
+def clear_folder(folder):
+    for the_file in os.listdir(folder):
+        file_path = os.path.join(folder, the_file)
+        try:
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            print(e)
+
 
 def save_file_text_makedir(path: str, pagename: str, text: str, normalize=True):
     """ Save main to html """
@@ -67,12 +76,16 @@ def file_savelines(filename: str, strlist: List[str], append=False):
         f.write(text)
 
 
+
 def file_savetext(filename: str, text: str):
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(text)
 
 
 def file_readtext(filename: str, encoding='utf-8'):
+   # with open('processed_files.txt', 'a+', encoding='utf-8') as f:
+   #      f.seek(0, 0)      # и 'mode=' работает если файл не создан
+    # mode = 'a' if append else 'w'  # неправильное дописывание
     # Если ошибка '0xff in position 0' попробовать 'utf-16'
     with open(filename, 'r', encoding=encoding) as f:
         text = f.read()
@@ -264,6 +277,14 @@ def path_to_Chrome_according_OS():
     else:
         path = 'chromium-browser'
     return path
+
+
+def to_zip_files(folder, withpath=False):
+    with zipfile.ZipFile('images.zip', 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, dirs, files in os.walk(folder):
+            for file in files:
+                arcname = None if withpath else file
+                zipf.write(os.path.join(root, file), arcname=arcname)
 
 
 # Excel ----------------
