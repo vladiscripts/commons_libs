@@ -41,6 +41,7 @@ def make_directory(path: str, normalize=True):
         if e.errno != errno.EEXIST:
             raise
 
+
 def clear_folder(folder):
     for the_file in os.listdir(folder):
         file_path = os.path.join(folder, the_file)
@@ -76,15 +77,14 @@ def file_savelines(filename: str, strlist: List[str], append=False):
         f.write(text)
 
 
-
 def file_savetext(filename: str, text: str):
     with open(filename, 'w', encoding='utf-8') as f:
         f.write(text)
 
 
 def file_readtext(filename: str, encoding='utf-8'):
-   # with open('processed_files.txt', 'a+', encoding='utf-8') as f:
-   #      f.seek(0, 0)      # и 'mode=' работает если файл не создан
+    # with open('processed_files.txt', 'a+', encoding='utf-8') as f:
+    #      f.seek(0, 0)      # и 'mode=' работает если файл не создан
     # mode = 'a' if append else 'w'  # неправильное дописывание
     # Если ошибка '0xff in position 0' попробовать 'utf-16'
     with open(filename, 'r', encoding=encoding) as f:
@@ -178,13 +178,13 @@ def file_save(filepath: str, data):
         f.write(data)
 
 
-def pickle_store_to_file(filename: str, data):
+def pickle_save_to_file(filename: str, data):
     import pickle
     with open(filename, 'wb') as f:
         pickle.dump(data, f)
 
 
-def pickle_data_from_file(filename: str):
+def pickle_load_from_file(filename: str):
     import pickle
     with open(filename, 'rb') as f:
         data = pickle.load(f)

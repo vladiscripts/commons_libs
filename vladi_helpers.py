@@ -108,9 +108,7 @@ def list_clean_empty_strs(lst):
     # return [p.strip() for p in lst.splitlines() if p.strip() != '']
     # return [lst.remove(v) for v in lst if v == '' and v.isspace()]
     # return [v.strip() for v in lst if not v.isspace() and v != '']
-
-    # filter(lambda x: x.strip() != '', k)
-    return [p.strip() for p in lst if p.strip() != '']
+    return [l.strip() for l in lst if l.strip() != '']
 
 
 def join_and_strip(lststr, skip_empty_str=False, sep=''):
