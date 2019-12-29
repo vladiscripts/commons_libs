@@ -9,14 +9,14 @@ from sys import version_info
 import os
 import errno
 import csv
-from typing import List
+from typing import List, Union, Tuple
 
 PYTHON_VERSION = version_info.major
 if PYTHON_VERSION == 3:
     from urllib.parse import urlsplit, parse_qs, parse_qsl, unquote, quote, urljoin, urlencode, quote_plus, urldefrag
 else:
     from urllib import urlencode, quote  # python 2.7
-from vladi_helpers.vladi_helpers import list_clean_empty_strs
+from vladi_helpers import list_clean_empty_strs
 import sqlite3
 import json
 from lxml.html import fromstring  # import html5lib
@@ -191,7 +191,7 @@ def pickle_load_from_file(filename: str):
     return data
 
 
-def csv_read(filename: str, csv_skip_firstline=False, return_dict=False):
+def csv_read(filename: str, csv_skip_firstline=False, return_dict=False, aslist=False):
     with open(filename, encoding='utf-8') as f:
         if return_dict:
             reader = csv.DictReader(f)
@@ -199,16 +199,17 @@ def csv_read(filename: str, csv_skip_firstline=False, return_dict=False):
             reader = csv.reader(f)
         if csv_skip_firstline:
             next(reader)
-        return tuple(row for row in reader)
+        data = list(row for row in reader) if aslist else tuple(row for row in reader)
+        return data
 
 
-def csv_read_dict(filename: str, delimiter=','):
-    with open(filename, encoding='utf-8') as f:
-        reader = csv.DictReader(f, delimiter=delimiter)
-        return tuple(row for row in reader)
+# def csv_read_dict(filename: str, delimiter=','):
+#     with open(filename, encoding='utf-8') as f:
+#         reader = csv.DictReader(f, delimiter=delimiter)
+#         return tuple(row for row in reader)
 
 
-def csv_save(path: str, list_str: List[List[str]], delimiter=','):
+def csv_save(path: str, list_str: Union[List, Tuple], delimiter=','):
     with open(path, "w", newline="", encoding='utf-8') as f:
         writer = csv.writer(f, delimiter=delimiter)
         for row in list_str:
@@ -219,16 +220,16 @@ def csv_save_dict(path: str, listdic: List[dict], fieldnames=None, delimiter=','
     """Writes a CSV file using DictWriter"""
     import csv
     if not fieldnames:
-        fieldnames = dic[0].keys()
+        fieldnames = listdic[0].keys()
     with open(path, "w", newline='', encoding='utf-8') as f:
         writer = csv.DictWriter(f, delimiter=delimiter, fieldnames=fieldnames)
         if headers:
             writer.writeheader()
-        for row in dic:
+        for row in listdic:
             writer.writerow(row)
 
 
-def csv_save_dict_fromListWithHeaders(path: str, listdicts: List[dict]):
+def csv_save_dict_fromListWithHeaders(path: str, data: List[dict]):
     """ ключи в первой строке списка"""
     # my_list = []
     fieldnames = data[0]
@@ -253,7 +254,7 @@ def csv_split_to_files_per_line_count(file_in: str, rows_chunk_size: int):
     """
     from vladi_helpers import split_list_per_line_count
     # from file_helpers import csv_read_dict, csv_save_dict
-    lst = csv_read_dict(file_in)
+    lst = csv_read(file_in, return_dict=True)
     # save on split without store
     # for i in range(0, len(lst), rows_chunk_size):
     #     z = lst[i:i + chunk_size]
@@ -280,6 +281,7 @@ def path_to_Chrome_according_OS():
 
 
 def to_zip_files(folder, withpath=False):
+    import zipfile
     with zipfile.ZipFile('images.zip', 'w', zipfile.ZIP_DEFLATED) as zipf:
         for root, dirs, files in os.walk(folder):
             for file in files:

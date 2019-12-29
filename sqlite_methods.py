@@ -41,8 +41,7 @@ def remake():
 def insert_record(id):
     sql = 'insert into ' + table_name + ' (id) values (%d)' % (id)
     c.execute(sql)
-    print
-    'Inserted ', id
+    print('Inserted ', id)
 
 
 def insert_row(conn, table, row):

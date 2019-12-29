@@ -7,6 +7,7 @@ composer.phar
 composer.lock
 *~
 password*
+wikilogin_passords.php
 *.pyc
 usefull_functions.py
 

@@ -1,23 +1,13 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8  -*-#
 # author: https://github.com/vladiscripts
 #
 # Библиотека общих функций
 #
-from sys import version_info
+# from sys import version_info
+# PYTHON_VERSION = version_info.major
 import os
 import re
-
-# from lxml.html import fromstring
-# import html5lib
-# import codecs
-PYTHON_VERSION = version_info.major
-if PYTHON_VERSION == 3:
-    from urllib.parse import urlsplit, parse_qs, parse_qsl, unquote, quote, urljoin, urlencode, quote_plus, urldefrag
-else:
-    from urllib import urlencode, quote  # python 2.7
-import re
-from urllib.parse import urlparse, parse_qs, parse_qsl, unquote, quote
+from urllib.parse import urlsplit, urlparse, parse_qs, parse_qsl, unquote, quote, quote_plus, urljoin, urlencode, \
+    urldefrag, urlunsplit
 
 
 def get_item_from_listdict(listdicts, key, value):
@@ -203,6 +193,7 @@ class Dict2class(object):
     instance.field
     """
 
+    # def __init__(self, **dictionary):
     def __init__(self, dictionary):
         self.__dict__.update(dictionary)
         # альтернатива
@@ -293,6 +284,18 @@ def benchmark(func):
     return wrapper
 
 
+def chunks(lst, count):
+    # """Разделить список на число частей."""
+    # start = 0
+    # for i in range(count):
+    #     stop = start + len(lst[i::count])
+    #     yield lst[start:stop]
+    #     start = stop
+
+    for i in range(0, len(lst), count):
+        yield lst[i:i + count]
+
+
 # Wiki ---
 
 def label_interpages(number, string_chet, str_nechet):
@@ -331,17 +334,18 @@ def url_params_str_to_list(url, unquote=True):
     import urllib.parse
     if unquote:
         url = urllib.parse.unquote(url)
-    d = urllib.parse.parse_qsl(url, keep_blank_values=True)
-    return {k: v[0] for k, v in d.items()}
+    lst = urllib.parse.parse_qsl(url, keep_blank_values=True)
+    # d = dict(p.split('=') for p in s.split('&'))
+    return lst
 
 
 def change_url_param(url, param, newvalue):
     parsed = urlsplit(url)
     query_dict = parse_qs(parsed.query)
     query_dict[param][0] = newvalue
-    query_new = urlencode(query_dict, doseq=True)
-    parsed = parsed._replace(query=query_new)
-    url_new = parsed.geturl()
+    parsed = parsed._replace(query=urlencode(query_dict, doseq=True))  # path=self.split.path + endpoint,
+    url_new = urlunsplit(parsed)
+    # url_new = parsed.geturl()
     return url_new
 
 
@@ -403,7 +407,7 @@ def cut_string_with_return_sep(string, sep_string):
 
 
 # lxml
-def remove_empty_tags(htmlelement, convert_to_str: bool = False, tags_ignore: list = None):
+def remove_empty_tags(tree, convert_to_str: bool = False, tags_ignore: list = None):
     '''Уборка пустых тегов'''
     from lxml.html import fromstring, tostring
     # tags_ignore = ['br', 'img', 'a']
@@ -414,11 +418,42 @@ def remove_empty_tags(htmlelement, convert_to_str: bool = False, tags_ignore: li
             return False
         return all((recursively_empty(c) for c in e.iterchildren()))
 
-    for e in htmlelement:
+    for e in tree:
         if recursively_empty(e):
             parent = e.getparent()
             parent.remove(e)
 
     if convert_to_str:
-        return tostring(htmlelement, encoding='unicode')
-    return htmlelement
+        return tostring(tree, encoding='unicode')
+    return tree
+
+
+# Pandas
+def parse_pandas(filename=None, fcontent=None):
+    import pandas as pd
+    import io
+    if filename:
+        df = pd.read_excel(filename, sheet_name=1, skiprows=[0], header=0)
+    elif fcontent:
+        df = pd.read_excel(io.BytesIO(fcontent), engine='xlrd', sheet_name=1, skiprows=[0], header=0)
+    else:
+        exit()
+    # df = df.rename(columns={df.columns[0]: 'date'})
+
+
+def make_dataframe_csv(self, zip_path=None, zip_content=None, csv_path=None, csv_content=None):
+    import pandas as pd
+    import io
+    import logging
+    self.df = None
+    if zip_path:
+        self.df = pd.read_csv(zip_path, compression='zip', sep=',', header=0)
+    elif zip_content:
+        self.df = pd.read_csv(io.BytesIO(zip_content), compression='zip', sep=',', header=0)
+    elif csv_path:
+        self.df = pd.read_csv(csv_path)
+    elif csv_content:
+        self.df = pd.read_csv(io.BytesIO(csv_content), sep=',', header=0)
+    else:
+        logging.error('No specified the input csv')
+        exit()
