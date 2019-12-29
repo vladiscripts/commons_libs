@@ -5,23 +5,14 @@
 # Библиотека общих функций:
 # работа с файлами в utf-8
 #
-from sys import version_info
+# from sys import version_info  # PYTHON_VERSION = version_info.major
 import os
 import errno
 import csv
 from typing import List, Union, Tuple
-
-PYTHON_VERSION = version_info.major
-if PYTHON_VERSION == 3:
-    from urllib.parse import urlsplit, parse_qs, parse_qsl, unquote, quote, urljoin, urlencode, quote_plus, urldefrag
-else:
-    from urllib import urlencode, quote  # python 2.7
-from vladi_helpers import list_clean_empty_strs
-import sqlite3
-import json
-from lxml.html import fromstring  # import html5lib
-import re
-from urllib.parse import urlparse, parse_qs, parse_qsl, unquote, quote
+from urllib.parse import urlsplit, urlparse, parse_qs, parse_qsl, unquote, quote, quote_plus, urljoin, urlencode, \
+    urldefrag, urlunsplit
+from .vladi_helpers import list_clean_empty_strs
 
 
 def filepaths_of_directory(directory: str, filename_ext: str = ''):
