@@ -9,7 +9,8 @@
 import os
 import errno
 import csv
-from typing import List, Union, Tuple
+from collections import namedtuple
+from typing import List, Union, Tuple, Sequence, Optional, Any
 from urllib.parse import urlsplit, urlparse, parse_qs, parse_qsl, unquote, quote, quote_plus, urljoin, urlencode, \
     urldefrag, urlunsplit
 from .vladi_helpers import list_clean_empty_strs
@@ -84,13 +85,8 @@ def file_readtext(filename: str, encoding='utf-8'):
 
 
 def file_readlines(filename: str):
-    if PYTHON_VERSION == 3:
-        with open(filename, 'r', encoding='utf-8') as f:
-            arr_strings = f.read().splitlines()
-    else:
-        import codecs
-        with codecs.open(filename, 'r', encoding='utf-8') as f:
-            arr_strings = f.read().splitlines()
+    with open(filename, 'r', encoding='utf-8') as f:
+        arr_strings = f.read().splitlines()
     return list_clean_empty_strs(arr_strings)
 
 
@@ -182,15 +178,43 @@ def pickle_load_from_file(filename: str):
     return data
 
 
-def csv_read(filename: str, csv_skip_firstline=False, return_dict=False, aslist=False):
+def csv_read_to_dict(filename: str, aslist=False):
+    with open(filename, encoding='utf-8') as f:
+        reader = csv.DictReader(f)
+        data = list(r for r in reader) if aslist else tuple(r for r in reader)
+        return data
+
+
+def csv_read(filename: str, csv_skip_firstline=False, aslist=False, as_namedtuple=False):
+    with open(filename, encoding='utf-8') as f:
+        reader = csv.reader(f)
+        if csv_skip_firstline:
+            next(reader)
+        data = list(r for r in reader) if aslist else tuple(r for r in reader)
+        return data
+
+
+def csv_read_to_namedtuple(filename: str, aslist=False, headers: [tuple, list] = None):
+    with open(filename, encoding='utf-8') as f:
+        reader = csv.reader(f)
+        rows = [row for row in reader]
+        headers = headers or rows.pop(0)
+        Row = namedtuple('Row', headers)
+        data = [Row(*r) for r in rows] if aslist else tuple(Row(*r) for r in rows)
+        return data
+
+
+def _csv_read(filename: str, csv_skip_firstline=False, return_dict=False, aslist=False, as_namedtuple=False):
     with open(filename, encoding='utf-8') as f:
         if return_dict:
             reader = csv.DictReader(f)
         else:
             reader = csv.reader(f)
-        if csv_skip_firstline:
-            next(reader)
-        data = list(row for row in reader) if aslist else tuple(row for row in reader)
+            if csv_skip_firstline:
+                next(reader)
+            data = list(row for row in reader) if aslist else tuple(row for row in reader)
+        if as_namedtuple:
+            data = to_namedtuple(data)
         return data
 
 
@@ -200,11 +224,13 @@ def csv_read(filename: str, csv_skip_firstline=False, return_dict=False, aslist=
 #         return tuple(row for row in reader)
 
 
-def csv_save(path: str, list_str: Union[List, Tuple], delimiter=','):
+def csv_save(path: str, list_str: Union[List[Sequence], Tuple[Sequence]], delimiter=','):
     with open(path, "w", newline="", encoding='utf-8') as f:
         writer = csv.writer(f, delimiter=delimiter)
         for row in list_str:
-            writer.writerow(row)
+            if not isinstance(row, (list, tuple, set)):
+                row = (row,)
+            writer.writerow(row)  # [row] если одна колонка
 
 
 def csv_save_dict(path: str, listdic: List[dict], fieldnames=None, delimiter=',', headers=True):
@@ -261,6 +287,17 @@ def csv_split_to_files_per_line_count(file_in: str, rows_chunk_size: int):
         csv_save_dict(f, z)
 
 
+def to_namedtuple(rows: Union[list, tuple], headers=None) -> namedtuple:
+    """Заголовки в первой строке"""
+    if not headers:
+        headers = rows[0]
+    Row = namedtuple('Row', headers)
+    rows = []
+    for row in rows:
+        rows.append(Row(row))
+    return rows
+
+
 def path_to_Chrome_according_OS():
     from sys import builtin_module_names
     from os import getenv
@@ -286,3 +323,9 @@ def get_rows_from_sheet(ws):
     for row in ws.iter_rows(min_row=1, min_col=1, max_row=ws.max_row, max_col=ws.max_column):
         rows_listdicts.append([cell.value for cell in row])
     return rows_listdicts
+
+
+def get_filenames_by_patterns():
+    """exemple"""
+    fnpatterns = ['female*since*', 'male*since*']
+    filenames = [f for p in fnpatterns for f in Path().glob(p + '.xlsx')]

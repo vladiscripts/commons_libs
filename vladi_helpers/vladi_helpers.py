@@ -202,7 +202,7 @@ class Dict2class(object):
 
 
 class Dictprop(dict):
-    """Дополняет атрибуты словаря, использованием как свойствами класса, для более удобного обращения к ним.
+    """Дополняет атрибуты словаря, для возможности dot notation, для более удобного обращения к ним.
     https://stackoverflow.com/questions/1639174/creating-class-instance-properties-from-a-dictionary/1639249
     Инициализация:
     instance = dictprop(dictionary)
@@ -294,6 +294,7 @@ def chunks(lst, count):
 
     for i in range(0, len(lst), count):
         yield lst[i:i + count]
+    # (lst[i:i + count] for i in range(0, len(lst), count))
 
 
 # Wiki ---
@@ -457,3 +458,7 @@ def make_dataframe_csv(self, zip_path=None, zip_content=None, csv_path=None, csv
     else:
         logging.error('No specified the input csv')
         exit()
+
+def num_mapping(s: list):
+    r = range(1, len(s) + 1)
+    z = dict(zip(r,s))
